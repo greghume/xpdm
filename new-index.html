@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>xt4a in vegas</title>
+<style>
+
+span.column-name { background-color:gold; font-size:120%; padding:4pt; display: block-inline; }
+
+.popup-row-details * { user-select:text; }
+
+.record-details-form { position:absolute;top:0;left:0;height:100%; width:100%; background-color:pink; overflow:auto;}
+.record-details-form li { display:grid; grid-template-columns: 200pt 1fr; align-content:stretch;}
+.record-details-form li label { padding:2pt; display:block; border: 0.5px solid rgb(127,127,127,0.25); }
+.record-details-form li span { padding:2pt; display:block; background-color: rgb(255,255,255,0.5); border: 0.5px solid #ccc; }
+.record-details-form label { display:block; padding-left:8pt; }
+.record-details-form .head { position:sticky; top:0;left:0; z-index:1; background-color:orange;padding:8pt; border-bottom:1px solid blue; }
+
+.end-group { border-bottom:1px dashed #222;}
+.column-id { color:brown; text-align:left; padding-left:20pt; font-weight:bold; border-bottom:1px dashed #222; padding-bottom:4pt; font-size:110%;}
+:root {
+
+    --main-background-color: 		hsl(180, 20%, 80%); 
+    --win-head-background-color: 	hsl(10,20%,80%); 
+    --win-head-color: 			hsl(10, 90%, 90%); 
+    --main-color: 			#6e4c3c;
+
+    --drop-button-background-color: 	hsl(180, 25%, 50%);
+    --drop-button-color: 		hsl(180, 25%, 90%);
+    --row-hover-color: 			hsl(180, 15%, 90%);
+
+    --table-heading-height: 		40px;
+    --table-heading-background-color: 	hsl(180,20%,80%);
+    --table-heading-color: 		hsl(10, 40%, 80%);
+}
+
+
+
+/*************************************/
+
+.box-input {
+  background-color: white;
+  outline: 0.5px dashed #444;
+  outline-offset: -4px;
+  height:60pt; 
+  }
+
+div.box-dragndrop,
+div.box-uploading,
+div.box-success,
+div.box-error {
+  display: none;
+}
+
+.box-dragndrop { display: inline; }
+
+/*************************************/
+
+ul.column-list li span.xxx {
+    display:flex;
+    flex-flow:row nowrap;
+    justify-content:space-between; 
+    border-bottom:1px dashed #ccc; 
+}
+
+/******************** column manager ***********/
+
+.column-manager-heading {
+	display:flex;flex-flow:row nowrap;justify-content:space-between; border-bottom:1px dashed #ccc; 
+	align-items:center;
+	}
+
+.column-manager-heading span {font-size:110%;display:block; padding-right:4pt; }
+.column-manager-heading span.buttonbar {display:flex; padding-right:4pt; flex-flow:row nowrap;justify-content:flex-end;}
+.column-manager-panel { padding:4pt; padding-top:4pt;}
+.column-manager-panel>div:first-of-type { padding-bottom:4pt; }
+.column-manager-panel ul { padding-top:8pt; list-style: none; columns: 400px; width:100%;
+	background-color:rgb(199,179,245,0.25);
+}
+	
+.column-manager-panel li { display:flex;flex-flow:row nowrap;justify-content:flex-start; }
+.column-manager-panel li:hover { color:black; background-color:gold; }
+.column-manager-panel li:hover * { color:black; background-color:gold; }
+
+.column-manager-panel li span:nth-of-type(1) { width:24pt; align-items:start; }
+.column-manager-panel li span:nth-of-type(2) { padding-left:8pt; width:24pt; text-align:left; border-right:0.5px dashed blue; }
+.column-manager-panel li span:nth-of-type(3) { min-width:20pt; text-align:left; padding-left:4pt;}
+.column-manager-panel li span:nth-of-type(1) { width:24pt; align-items:start; }
+.column-manager-panel li button { border:0.5px solid #ccc; width:24pt;padding:2pt;}
+.column-manager-panel li button:hover { background-color:red; }
+
+
+/******************** add dataset dropdown  ***********/
+
+
+#add-dataset-dropdown { 
+	height:300pt; width:400pt;
+	padding:8pt; 
+	background-color:#eee;
+	border:2pt solid gold;
+	border-top:4pt solid gold;
+	resize:both; 
+	overflow:auto;
+}
+
+#add-dataset-dropdown label { min-width:120pt; }
+
+#add-dataset-dropdown div:not(.box-input) { min-height:24pt; display:flex;flex-flow:row nowrap;  }
+#add-dataset-dropdown textarea { width:200pt; height:40pt; }
+
+.dropdown-content div { padding:4pt; border-bottom:1px dotted blue; }
+.dropdown-content input:hover { color:black; background-color: gold; }
+.dropdown-content .buttonbar { padding:4pt; border-bottom:1px dotted blue; display:flex; flex-flow:row nowrap; justify-content:flex-end; align-content:stretch; }
+
+
+.zzz { display:flex; flex-flow:row nowrap; justify-content:space-between; align-content:stretch;}
+.zzz { background-color: #3498DB; color:white; min-width:173pt; min-height:32pt;}
+.zzz>*:hover { color:black; }
+  
+
+.chart-container { position:absolute; top:0;left:0; height:100%; width:100%; }
+
+span.matching-choices { background-color:#eee; color:black; padding:2pt; padding-right:4pt;padding-left:4pt;  }
+
+input.popin-input { margin-left:8pt; padding:2pt; background-color:cyan; }
+input.ah1 { width:100%; margin-left:8pt; padding:2pt; height:20pt; border: 1px solid cyan; }
+
+label.ah1:hover { background-color:gold; }
+
+
+* { user-select:none; outline:0;border:0;padding:0;margin:0; box-sizing:border-box; font-family:Verdana; font-weight:500; color:#000; font-size:10pt;}
+
+u { border-bottom:1px solid gold; text-decoration:none; } 
+u:hover {color:black; background-color:gold;}
+
+a { border-bottom:1px solid cyan; text-decoration:none; }
+
+label::checked { background-color:cyan; }
+
+td.rosy { background-color:rgb(245,183,122,0.5); }
+
+
+/* -- filter -- */
+
+
+.filter-body {  grid-area: filter-body; }
+
+.filter-header {  
+    grid-area: filter-header;
+    background-color:#222; color:#fff; font-size:110%;
+    border-bottom:2pt solid #ccc;
+    display:flex; flex-flow: row nowrap; justify-content: space-between;
+    padding:4pt;
+    padding-left:8pt;
+}
+
+.filter-header label,
+.filter-header button { background-color:#222; color:white;}
+.filter-header label:hover,
+.filter-header button:hover { color:black; }
+
+.filter-box { 
+
+    box-sizing:border-box;
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    width:100%; height:100%;
+
+    overflow:hidden;
+    display: grid;
+    grid-template-areas: "filter-header" "filter-body";
+    grid-template-rows: fit-content(24pt) 1fr;
+    grid-template-columns: 1fr;
+
+    justify-content:stretch;
+    align-content:stretch;
+}
+
+.matches { background-color: #dfd; }
+.pushed { background-color: #dfa; }
+
+.choices:hover {  background-color:#fea;}
+.choices {  
+
+	display:inline; 
+	columns: 200px; 
+	overflow:auto;
+	user-select:none;
+	resize:both;
+
+	color:brown; 
+	background-color:#fea; 
+	border:0.5px solid rgb(201,230,245,0.5); 
+	padding:9pt; 
+	box-shadow:
+	    0 2.8px 2.2px rgba(0, 0, 255, 0.034),
+	    0 6.7px 5.3px rgba(0, 0, 255, 0.048),
+	    0 8.7px 7.3px rgba(0, 0, 255, 0.048);
+} 
+
+.choices li:hover { background-color:gold; }
+.choices li { 
+	cursor:pointer; 
+        white-space: nowrap;
+	min-width:40pt;
+	overflow:hidden;
+	text-overflow: ellipsis;
+}
+
+
+x-win { top:52pt; background-color:#eea; }
+
+
+
+body { 
+	position:absolute; padding:0;
+	margin:0; border:0; top:0; left:0; 
+	height:100%; width:100%;
+	display:grid;
+	grid-template-areas:"head" "main";
+	grid-template-rows: 36pt 1fr;
+	grid-template-columns: 1fr;
+	background-color: var(--table-heading-background-color);
+}
+
+main {  grid-area:main; position:absolute; top:0; left:0; width:100%;height:100%; }
+
+heading {
+    grid-area: head;
+    margin:0;padding:0;border:0;
+    width:100%;
+    height:100%;
+    position:absolute;top:0;left:0;
+    display:flex; flex-flow:row nowrap; justify-content:space-between; align-items: center; 
+    padding:4pt;
+    padding-right:16pt;
+    z-index:20;
+    background-color: var(--main-background-color);
+    border-top:2pt solid #09a;
+    box-shadow:
+	0 2.8px  2.2px rgba(155, 155, 150, 0.134),
+	0 6.7px  5.3px rgba(155, 155, 150, 0.048),
+	0 12.5px 10px rgba( 155, 155, 150, 0.06),
+	0 22.3px 17.9px rgba(155, 155, 150, 0.072),
+	0 41.8px 33.4px rgba(155, 155, 150, 0.086),
+	0 100px 80px rgba(155, 155, 150, 0.12); 
+}
+
+
+
+.heading-button {
+    padding:3pt; 
+    padding-left:5pt; 
+    padding-right:4pt; 
+    border-radius:8pt; 
+    border:1px solid rgb(207,224,245); 
+    background-color: rgb(207,215,229,0.5); 
+    background-color: rgb(255,255,255,0.25); 
+    max-height:24pt;
+}
+
+
+.heading-button::before {
+    content: '';
+    z-index: -1;
+    /*position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    */
+
+    background: inherit;
+    border-radius: inherit;
+
+    filter: blur(15px);
+
+    opacity: 0;
+    transition: opacity 300ms;
+}
+
+.heading-button:hover { 
+background-color:gold; 
+    box-shadow:
+	0 2.8px  2.2px rgba(155, 155, 150, 0.134),
+	0 6.7px  5.3px rgba(155, 155, 150, 0.048),
+	0 12.5px 10px rgba( 155, 155, 150, 0.06),
+	0 22.3px 17.9px rgba(155, 155, 150, 0.072),
+	0 41.8px 33.4px rgba(155, 155, 150, 0.086),
+	0 100px 80px rgba(155, 155, 150, 0.12); 
+} 
+
+.heading-button:hover::before { opacity: 1; }
+
+
+/* -- context menus -- */
+
+.current-context-element {outline:2pt solid gold;}
+
+.context-menu {
+    padding:8pt;
+    line-height: 1.5;
+
+    min-width: 120px;
+    background-color:gold; color:black; 
+    z-index: 99998;
+    box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2),
+		    0 2.8px 2.2px rgba(0, 0, 255, 0.034),
+		    0 6.7px 5.3px rgba(0, 0, 255, 0.048),
+		    0 8.7px 7.3px rgba(0, 0, 255, 0.048);
+    position: fixed;
+    display: none;
+    transition: 0.2s display ease-in;
+}
+
+.context-menu .menu-options {
+    list-style: none;
+    padding: 2pt;
+    z-index: 99999;
+}
+
+.context-menu .menu-options .menu-option {
+    font-weight: 500;
+    z-index: 999999;
+    font-size: 14px;
+    padding: 2pt;
+    cursor: pointer;
+}
+
+.context-menu .menu-options .menu-option:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* -- context menus -- */
+
+
+hidden-li {background-color:rgb(155,155,155,0.5); }
+
+
+td { overflow:hidden; min-width:20pt; max-width:40%; text-overflow: ellipsis; white-space: nowrap;}
+
+
+
+/* .x is an element with a hidden slide-out component - the .y element */
+
+tr.heading td:hover { background-color:rgb(255,255,255,0.5);}
+
+/*********
+tr { display:flex; flex-flow:row nowrap; justify-content:start; }
+tr td:nth-child(2) { width:120pt; }
+tr td:nth-child(3) { flex-grow:2; }
+tr td:nth-child(4) { flex-grow:3; }
+**********/
+
+tr { height:16pt; border:1px solid lightblue; overflow:hidden;}
+tr TD { height:16pt; overflow:hidden; white-space:nowrap;text-overflow: ellipsis; }
+
+/*
+.x { 
+    text-align:left; 
+    padding-top:4pt; 
+    padding-left:8pt;
+    text-align:left;  
+    position:absolute; 
+    top:0;left:0; 
+    height:100%; width:100%; 
+}
+
+
+*/
+/******
+.x:hover .y {
+    display: flex;z-index:999; 
+    position:fixed;
+    margin:0;
+    flex-flow: row nowrap; align-content:center; justify-content:flex-end;
+}
+*********/
+
+.y { position:absolute; top:18; left:2; display:none; background-color: rgb(255,255,255,0.1); }
+.y button { padding:2pt; width:20pt; font-size:80%; align-self:center; justify-self:center; background-color:white;}
+.y button:hover { background-color:gold; }
+
+
+
+/* the table container definition */
+
+section.outer-table { 
+
+    position:absolute; 
+    top:0;left:0;right:0;bottom:0;
+    overflow:hidden; 
+
+    width:100%; min-width:80pt; 
+    height:100%; min-height:80pt; 
+
+    border:0.5px solid #aea; 
+    background-color:rgb(227,234,219); 
+    background-color: var(--table-heading-background-color);
+    box-shadow:
+	0 2.8px 2.2px rgba(0, 0, 0, 0.134),
+	0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+	0 12.5px 10px rgba(0, 0, 0, 0.06),
+	0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+	0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+	0 100px 80px rgba(0, 0, 0, 0.12); 
+
+    display:grid; 
+    grid-template-rows: 1fr 16px;
+    grid-template-columns: 1fr 16px;
+    grid-template-areas: "a b" "c d";
+
+}
+
+/* the vertical scroll bar */
+
+.vsb { 
+    grid-area:b;
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    background-color:inherit;
+}
+
+.hsb { 
+    grid-area:c;
+    position:absolute;
+    top:0;left:0;
+    width: 100%;
+    height:100%;
+    background-color:inherit; 
+}
+
+.htrack { 
+    position:absolute; 
+    top:0;
+    left:0; 
+    width:100%; 
+    height:100%; 
+    background-color:#aaa; 
+}
+
+.hthumb { 
+    position:absolute; 
+    top:0;
+    left:0; 
+    width:20pt; 
+    height:100%; 
+    background-color:pink; 
+    box-shadow:
+        0 2.8px 2.2px rgba(0, 0, 0, 0.134),
+        0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+        0 12.5px 10px rgba(0, 0, 0, 0.06),
+        0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+        0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+        0 100px 80px rgba(0, 0, 0, 0.12); 
+}
+
+
+
+.vtrack { position:absolute; top:40px;left:0; width:100%; height:calc( 100% - 40px); background-color:#aaa; }
+.vthumb { 
+border-top:1px solid #aaa; position:absolute; top:0;left:0; width:100%; height:20pt; background-color:pink; 
+    box-shadow:
+	0 2.8px 2.2px rgba(0, 0, 0, 0.134),
+	0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+	0 12.5px 10px rgba(0, 0, 0, 0.06),
+	0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+	0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+	0 100px 80px rgba(0, 0, 0, 0.12); 
+}
+
+/*
+.htrack { position:absolute; top:0;left:40; width:100%; height:100%; background-color:red; }
+.hthumb { position:absolute; top:0;left:0; width:20pt; height:100%; background-color:pink; }
+*/
+
+
+
+/* Table wrapper and structure */
+.table-wrapper {
+    grid-area: a;
+    position: relative;
+    width: 100%;
+    overflow: hidden; /* Change from auto to hidden */
+    display: flex; /* Use flexbox for layout */
+}
+
+/* Main table container */
+table {
+    grid-area: a;
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    background-color: rgb(227,234,219);
+    border-top: 0px solid cyan;
+    position: relative;
+    /*width: max-content;*/
+    /*min-width: 100%;*/
+    table-layout: fixed; /* Add fixed table layout */
+}
+
+/* First column (row numbers) */
+td:first-child,
+th:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 3 !important; /* Increase z-index */
+    background-color: var(--table-heading-background-color) !important;
+    box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.2);
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    border-right: 1px solid #ccc;
+}
+
+/* Header row first cell */
+tr.heading td:first-child {
+    z-index: 4 !important; /* Higher z-index for header */
+    background-color: var(--table-heading-background-color) !important;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Scrollable container */
+.table-scroll {
+    overflow-x: auto;
+    width: calc(100% - 40px); /* Subtract width of first column */
+    margin-left: 40px; /* Offset by width of first column */
+}
+
+/* Remove any conflicting styles */
+td:first-child { 
+    background-color: var(--table-heading-background-color) !important; 
+    text-align: center;
+    font-size: 90%;
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 3 !important;
+}
+
+tr.heading td:first-child {
+    z-index: 4 !important;
+}
+
+/* setting common and individual column heading styles */
+
+.colhead * { font-family:Verdana; font-size:110%; color:#222; }
+
+
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+.colhead:nth-child(5),
+.colhead:nth-child(6),
+.colhead:nth-child(7),
+.colhead:nth-child(8),
+.colhead:nth-child(9),
+.colhead:nth-child(10),
+.colhead:nth-child(11) { background-color:#efb;}
+#col4 {background-color:lightgreen;  }
+/*** ***/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+
+
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/* there are two row classes: .heading and .bodyrow  */
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+
+.heading { 
+  color: 		var(--table-heading-color);
+  background-color: 	var(--table-heading-background-color);
+  height:		var(--table-heading-height);
+}
+
+/*
+tr.heading td * { background-color:red; text-align: left; }
+tr.heading: td:first-of-type { background-color:gold; text-align: center; }
+*/
+
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+
+/* add a right-shadow to the left most row. */
+
+
+td:nth-child(2) { padding-left:4pt;  }
+
+td { max-width:40%; font-family:Verdana;  min-width:20pt; text-overflow: ellipsis; white-space: nowrap; } 
+
+td.colhead:first-of-type { box-shadow:none; }
+
+td:first-child{ 
+    background-color: var(--table-heading-background-color); 
+    text-align:center;
+    font-size:90%;
+    box-shadow:
+	0 2.8px 2.2px rgba(0, 0, 0, 0.134),
+	0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+	0 12.5px 10px rgba(0, 0, 0, 0.06),
+	0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+	0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+	0 100px 80px rgba(0, 0, 0, 0.12); 
+}
+
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+/************************************/
+
+tr.bodyrow { background-color:white;}
+tr.bodyrow:hover { background-color: var(--row-hover-color);}
+
+tr.bodyrow:first-child { 
+    background-color: var(--table-heading-background-color); 
+    text-align:center;
+    font-size:90%;
+    box-shadow:
+	0 2.8px 2.2px rgba(0, 0, 0, 0.134),
+	0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+	0 12.5px 10px rgba(0, 0, 0, 0.06),
+	0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+	0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+	0 100px 80px rgba(0, 0, 0, 0.12); 
+}
+
+select { text-overflow: ellipsis; min-width:120pt; max-width: 240pt; overflow:hidden; }
+
+
+
+.xxb { grid-area:d; }
+
+td:first-child { max-width:40pt; min-width:40pt; width:40pt; }
+
+    th,td {  text-overflow: ellipsis; white-space: wrap; border-left: 0.5px solid #ccc; padding:2px; padding-left:4pt;}
+
+    th,td { overflow:hidden;}
+    tr { overflow:hidden;} 
+
+    tr:last-child { bottom:0;left:0; }
+
+
+
+td.selected-cell { outline: 1px solid cyan; }
+
+
+
+td.selected { background-color:pink; }
+span.notshow { text-decoration-line: line-through;
+    text-decoration-color: brown;}
+
+
+/*
+//
+// dropdown stuff
+//
+*/
+
+
+.xxx {
+  background-color: #3498DB;
+    color: white;
+    font-size:110%;
+    padding:2pt;
+}
+.xxx:hover {
+  background-color: gold;
+    color: black;
+}
+
+.zzz button { 
+  background-color: #3498DB;
+  color:white;
+  cursor:pointer;
+  }
+
+/*
+//
+// dropdown stuff
+//
+*/
+
+.dropbtn {
+
+  border-radius:	4pt;
+  color: 		var(--drop-button-color);
+  background-color: 	var(--drop-button-background-color);
+  padding: 4pt;
+  margin:2pt;
+  font-size: 110%;
+  border: 1px solid hsl(180,40%,80%);
+  cursor: pointer;
+  height:100%;
+}
+
+
+.dropbtn:hover {
+    background-color: #2980B9;
+    background-color: gold;
+    color: #222;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 260pt;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown a:hover {background-color: #ddd;}
+
+/*
+//
+// dropdown stuff
+//
+*/
+
+.show {display: block;}
+.hide {display: none;}
+
+</style>
+
+<body>
+    <heading>
+    	<div style="padding-left:8pt;max-width:80pt;">VTable Testing</div>
+    </heading>
+    <main>
+	<section class="outer-table"></section> 
+    </main>
+</body>
+
+<script src="/xt3/x-win3.js"></script>
+<script src="/xt3/vtable.js"></script>
+<script>
+
+    /*
+    //
+    //
+    //
+    */
+
+    window.onload = async () => {
+
+	console.time('onload done')
+
+	let x = await fetch('/cxinv/data/cxinv-data.json');
+        let rawdata = await x.json();
+
+	// rawdata[0] contains the column headings, 
+	// rawdata[1...] contains data records
+	rawdata[0].forEach( columnHeading => vtable.columns.push( {label: columnHeading} ));
+	vtable.data = rawdata.slice(1);
+
+	vtable.buildtable();
+	vtable.redrawTableFrom(0, 0);
+        console.log('vtable',vtable);
+	console.timeEnd('onload done');
+    }
+
+
+</script>
+
